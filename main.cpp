@@ -21,7 +21,7 @@
 using namespace Framework;
 using namespace std;
 
-int main() {
+int main(int argc, char* argv[]) {
     SysPuntaje::cargar();
     Engine engine(640, 380);
     if (!engine.init("Colección de Juegos SDL2")){
