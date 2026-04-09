@@ -1,0 +1,70 @@
+name: Build & Package Portable Windows SDL2 Game
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up MSYS2
+      uses: msys2/setup-msys2@v2
+      with:
+        msystem: MINGW64
+        install: >-
+          mingw-w64-x86_64-gcc
+          mingw-w64-x86_64-SDL2
+          mingw-w64-x86_64-SDL2_ttf
+          mingw-w64-x86_64-SDL2_mixer
+          zip
+
+    - name: Build executable
+      run: |
+        mkdir -p bin
+        g++ -std=c++17 main.cpp -o bin/TetrisGame.exe \
+          -lmingw32 -lSDL2main -lSDL2 -lSDL2_ttf -lSDL2_mixer
+
+    - name: Copy required DLLs
+      run: |
+        cp /mingw64/bin/SDL2.dll bin/
+        cp /mingw64/bin/SDL2_ttf.dll bin/
+        cp /mingw64/bin/SDL2_mixer.dll bin/
+        cp /mingw64/bin/libwinpthread-1.dll bin/
+        cp /mingw64/bin/libstdc++-6.dll bin/
+        cp /mingw64/bin/libgcc_s_seh-1.dll bin/
+        # SDL2_ttf depende de FreeType y otras libs; copiamos las más comunes
+        cp /mingw64/bin/libfreetype-6.dll bin/
+        cp /mingw64/bin/libbz2-1.dll bin/
+        cp /mingw64/bin/libharfbuzz-0.dll bin/
+        cp /mingw64/bin/libpng16-16.dll bin/
+        cp /mingw64/bin/zlib1.dll bin/
+        cp /mingw64/bin/libgraphite2.dll bin/
+        cp /mingw64/bin/libglib-2.0-0.dll bin/
+        cp /mingw64/bin/libintl-8.dll bin/
+        cp /mingw64/bin/libiconv-2.dll bin/
+        cp /mingw64/bin/libpcre-1.dll bin/
+
+    - name: Copy assets folder (if exists)
+      run: |
+        if [ -d "assets" ]; then
+          cp -r assets bin/
+        fi
+
+    - name: Package ZIP
+      run: |
+        cd bin
+        zip -r ../Tetris_Portable_Windows.zip *
+
+    - uses: actions/upload-artifact@v4
+      with:
+        name: tetris-portable-windows
+        path: Tetris_Portable_Windows.zip
