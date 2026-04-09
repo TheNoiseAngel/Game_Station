@@ -15,8 +15,8 @@
 //#include "Climber.h"
 //#include "Micro-Craft.h"
 
-#include "MainMenu.h"
-#include "SimpleBoxGame.h"
+//#include "MainMenu.h"
+//#include "SimpleBoxGame.h"
 
 using namespace Framework;
 using namespace std;
