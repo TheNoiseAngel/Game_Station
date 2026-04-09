@@ -34,21 +34,32 @@ jobs:
           -I/mingw64/include/SDL2 \
           -lmingw32 -lSDL2main -lSDL2 -lSDL2_ttf -lSDL2_mixer
 
-    - name: Copy required DLLs
+    - name: Copy required DLLs (automático + manual)
       run: |
+        # Primero copiamos las DLL esenciales de SDL y MinGW
         cd /mingw64/bin
-        # Copiar DLLs esenciales de SDL
         cp -v SDL2.dll SDL2_ttf.dll SDL2_mixer.dll "$OLDPWD/bin/" 2>/dev/null || true
-        # Runtimes MinGW
         cp -v libwinpthread-1.dll libstdc++-6.dll libgcc_s_seh-1.dll "$OLDPWD/bin/" 2>/dev/null || true
-        # Dependencias de SDL2_ttf
+
+        # Ahora entramos en la carpeta bin del proyecto
+        cd "$OLDPWD/bin"
+        echo "=== Detectando dependencias automáticamente con ldd ==="
+        # Usamos ldd para listar las DLLs que necesita el ejecutable
+        ldd TetrisGame.exe | grep '=> /mingw64/bin/' | awk '{print $3}' | while read -r dll; do
+          if [ -f "$dll" ]; then
+            echo "Copiando $dll ..."
+            cp -v "$dll" .
+          fi
+        done
+
+        # Copia manual adicional (por si acaso, no hace daño)
+        cd /mingw64/bin
         cp -v libfreetype-6.dll libbz2-1.dll libharfbuzz-0.dll libpng16-16.dll zlib1.dll "$OLDPWD/bin/" 2>/dev/null || true
         cp -v libgraphite2.dll libglib-2.0-0.dll libintl-8.dll libiconv-2.dll "$OLDPWD/bin/" 2>/dev/null || true
         cp -v libpcre*.dll "$OLDPWD/bin/" 2>/dev/null || true
-        # Dependencias de SDL2_mixer
         cp -v libmpg123-0.dll libmodplug-1.dll libFLAC.dll libwavpack-1.dll libxmp.dll "$OLDPWD/bin/" 2>/dev/null || true
         cp -v libvorbisfile-3.dll libvorbis-0.dll libogg-0.dll "$OLDPWD/bin/" 2>/dev/null || true
-        # Dependencia adicional de compresión
+        cp -v libopusfile-0.dll libopus-0.dll "$OLDPWD/bin/" 2>/dev/null || true
         cp -v libbrotlidec.dll libbrotlicommon.dll "$OLDPWD/bin/" 2>/dev/null || true
       shell: msys2 {0}
 
