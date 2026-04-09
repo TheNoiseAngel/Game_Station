@@ -25,33 +25,32 @@ jobs:
           mingw-w64-x86_64-SDL2
           mingw-w64-x86_64-SDL2_ttf
           mingw-w64-x86_64-SDL2_mixer
+          mingw-w64-x86_64-libmpg123
           zip
 
     - name: Build executable
       run: |
         mkdir -p bin
         g++ -std=c++17 main.cpp -o bin/TetrisGame.exe \
-          -lmingw32 -lSDL2main -lSDL2 -lSDL2_ttf -lSDL2_mixer
+          -I/mingw64/include/SDL2 \
+          -lmingw32 -lSDL2main -lSDL2 -lSDL2_ttf -lSDL2_mixer \
+          -lmpg123 -lvorbisfile -lvorbis -logg
 
     - name: Copy required DLLs
       run: |
-        cp /mingw64/bin/SDL2.dll bin/
-        cp /mingw64/bin/SDL2_ttf.dll bin/
-        cp /mingw64/bin/SDL2_mixer.dll bin/
-        cp /mingw64/bin/libwinpthread-1.dll bin/
-        cp /mingw64/bin/libstdc++-6.dll bin/
-        cp /mingw64/bin/libgcc_s_seh-1.dll bin/
-        # SDL2_ttf depende de FreeType y otras libs; copiamos las más comunes
-        cp /mingw64/bin/libfreetype-6.dll bin/
-        cp /mingw64/bin/libbz2-1.dll bin/
-        cp /mingw64/bin/libharfbuzz-0.dll bin/
-        cp /mingw64/bin/libpng16-16.dll bin/
-        cp /mingw64/bin/zlib1.dll bin/
-        cp /mingw64/bin/libgraphite2.dll bin/
-        cp /mingw64/bin/libglib-2.0-0.dll bin/
-        cp /mingw64/bin/libintl-8.dll bin/
-        cp /mingw64/bin/libiconv-2.dll bin/
-        cp /mingw64/bin/libpcre-1.dll bin/
+        cd /mingw64/bin
+        # Copiar DLLs de SDL (esenciales)
+        cp -v SDL2.dll SDL2_ttf.dll SDL2_mixer.dll "$OLDPWD/bin/" 2>/dev/null || true
+        # Runtimes de MinGW
+        cp -v libwinpthread-1.dll libstdc++-6.dll libgcc_s_seh-1.dll "$OLDPWD/bin/" 2>/dev/null || true
+        # Dependencias de SDL2_ttf
+        cp -v libfreetype-6.dll libbz2-1.dll libharfbuzz-0.dll libpng16-16.dll zlib1.dll "$OLDPWD/bin/" 2>/dev/null || true
+        cp -v libgraphite2.dll libglib-2.0-0.dll libintl-8.dll libiconv-2.dll "$OLDPWD/bin/" 2>/dev/null || true
+        # PCRE (varias versiones posibles)
+        cp -v libpcre*.dll "$OLDPWD/bin/" 2>/dev/null || true
+        # Dependencias de SDL2_mixer para MP3/OGG
+        cp -v libmpg123-0.dll libvorbisfile-3.dll libvorbis-0.dll libogg-0.dll "$OLDPWD/bin/" 2>/dev/null || true
+      shell: msys2 {0}
 
     - name: Copy assets folder (if exists)
       run: |
