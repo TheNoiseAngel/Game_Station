@@ -25,7 +25,6 @@ jobs:
           mingw-w64-x86_64-SDL2
           mingw-w64-x86_64-SDL2_ttf
           mingw-w64-x86_64-SDL2_mixer
-          mingw-w64-x86_64-libmpg123
           zip
 
     - name: Build executable
@@ -33,23 +32,22 @@ jobs:
         mkdir -p bin
         g++ -std=c++17 main.cpp -o bin/TetrisGame.exe \
           -I/mingw64/include/SDL2 \
-          -lmingw32 -lSDL2main -lSDL2 -lSDL2_ttf -lSDL2_mixer \
-          -lmpg123 -lvorbisfile -lvorbis -logg
+          -lmingw32 -lSDL2main -lSDL2 -lSDL2_ttf -lSDL2_mixer
 
     - name: Copy required DLLs
       run: |
         cd /mingw64/bin
-        # Copiar DLLs de SDL (esenciales)
+        # Copiar DLLs esenciales de SDL
         cp -v SDL2.dll SDL2_ttf.dll SDL2_mixer.dll "$OLDPWD/bin/" 2>/dev/null || true
-        # Runtimes de MinGW
+        # Runtimes MinGW
         cp -v libwinpthread-1.dll libstdc++-6.dll libgcc_s_seh-1.dll "$OLDPWD/bin/" 2>/dev/null || true
         # Dependencias de SDL2_ttf
         cp -v libfreetype-6.dll libbz2-1.dll libharfbuzz-0.dll libpng16-16.dll zlib1.dll "$OLDPWD/bin/" 2>/dev/null || true
         cp -v libgraphite2.dll libglib-2.0-0.dll libintl-8.dll libiconv-2.dll "$OLDPWD/bin/" 2>/dev/null || true
-        # PCRE (varias versiones posibles)
         cp -v libpcre*.dll "$OLDPWD/bin/" 2>/dev/null || true
-        # Dependencias de SDL2_mixer para MP3/OGG
-        cp -v libmpg123-0.dll libvorbisfile-3.dll libvorbis-0.dll libogg-0.dll "$OLDPWD/bin/" 2>/dev/null || true
+        # Dependencias de SDL2_mixer (se instalan automáticamente con el paquete)
+        cp -v libmpg123-0.dll libmodplug-1.dll libFLAC-8.dll libopusfile-0.dll libopus-0.dll "$OLDPWD/bin/" 2>/dev/null || true
+        cp -v libvorbisfile-3.dll libvorbis-0.dll libogg-0.dll "$OLDPWD/bin/" 2>/dev/null || true
       shell: msys2 {0}
 
     - name: Copy assets folder (if exists)
